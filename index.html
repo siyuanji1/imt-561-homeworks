@@ -12,7 +12,9 @@
 
 <body>
   <main>
-    <nav class="tabs" role="tablist" aria-label="Main tabs">
+    <button id="tabs-visibility-toggle" class="tabs-visibility-toggle" type="button" aria-controls="main-tabs"
+      aria-pressed="false">Hide tabs</button>
+    <nav id="main-tabs" class="tabs" role="tablist" aria-label="Main tabs">
       <button type="button" class="tab-btn active" data-target="tab1" role="tab" aria-selected="true">Welcome</button>
 
       <!-- Homework 4 -->
@@ -29,8 +31,8 @@
       <button type="button" class="tab-btn" data-target="tab12" data-sketch="sk12" role="tab">Ex 7</button>
       <button type="button" class="tab-btn" data-target="tab13" data-sketch="sk13" role="tab">Ex 8</button>
       <button type="button" class="tab-btn" data-target="tab14" data-sketch="sk14" role="tab">Ex 9</button>
-      <button type="button" class="tab-btn" data-target="tab16" data-sketch="sk16" role="tab">Ex 10 **</button>
-      <button type="button" class="tab-btn" data-target="tab17" data-sketch="sk17" role="tab">Ex 11 **</button>
+      <button type="button" class="tab-btn tab-btn-highlight" data-target="tab16" data-sketch="sk16" role="tab">Ex 10 **</button>
+      <button type="button" class="tab-btn tab-btn-highlight" data-target="tab17" data-sketch="sk17" role="tab">Ex 11 **</button>
       <button type="button" class="tab-btn" data-target="tab15" data-sketch="sk15" role="tab">HWK 5</button>
     </nav>
 

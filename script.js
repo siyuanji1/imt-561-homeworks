@@ -84,8 +84,43 @@ function createOrShowSketch(sketchId) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    const tabs = document.getElementById('main-tabs');
+    const tabsToggleBtn = document.getElementById('tabs-visibility-toggle');
+    const TABS_HIDDEN_KEY = 'imt561_tabs_hidden';
     const buttons = document.querySelectorAll('.tab-btn');
     const contents = document.querySelectorAll('.tab-content');
+
+    function readTabsHiddenState() {
+        try {
+            return window.localStorage.getItem(TABS_HIDDEN_KEY) === '1';
+        } catch (_) {
+            return false;
+        }
+    }
+
+    function saveTabsHiddenState(hidden) {
+        try {
+            window.localStorage.setItem(TABS_HIDDEN_KEY, hidden ? '1' : '0');
+        } catch (_) {
+            // Ignore storage errors (private mode/restricted storage).
+        }
+    }
+
+    function applyTabsHiddenState(hidden) {
+        if (!tabs || !tabsToggleBtn) return;
+        tabs.classList.toggle('is-hidden', hidden);
+        tabsToggleBtn.textContent = hidden ? 'Show tabs' : 'Hide tabs';
+        tabsToggleBtn.setAttribute('aria-pressed', String(hidden));
+    }
+
+    if (tabs && tabsToggleBtn) {
+        applyTabsHiddenState(readTabsHiddenState());
+        tabsToggleBtn.addEventListener('click', () => {
+            const hidden = !tabs.classList.contains('is-hidden');
+            applyTabsHiddenState(hidden);
+            saveTabsHiddenState(hidden);
+        });
+    }
 
     buttons.forEach(btn => {
         btn.addEventListener('click', async () => {

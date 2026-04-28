@@ -23,6 +23,30 @@ canvas {
   overflow-x: auto;
 }
 
+.tabs.is-hidden {
+  display: none;
+}
+
+.tabs-visibility-toggle {
+  position: fixed;
+  top: 10px;
+  right: 12px;
+  z-index: 1000;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #374151;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  line-height: 1;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.tabs-visibility-toggle:hover {
+  border-color: #9ca3af;
+  color: #111827;
+}
+
 .tab-btn {
   padding: 8px 0;
   cursor: pointer;
@@ -40,6 +64,20 @@ canvas {
   color: #111827;
   font-weight: 500;
   border-bottom: 1.5px solid #111827;
+}
+
+.tab-btn-highlight {
+  color: #7c2d12;
+  font-weight: 500;
+}
+
+.tab-btn-highlight:hover {
+  color: #9a3412;
+}
+
+.tab-btn-highlight.active {
+  color: #9a3412;
+  border-bottom-color: #9a3412;
 }
 
 .tab-content {
