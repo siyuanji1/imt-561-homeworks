@@ -109,10 +109,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center' // Scroll until the div is centered in the viewport
-                });
+                // target.scrollIntoView({
+                //     behavior: 'smooth',
+                //     block: 'center' // Scroll until the div is centered in the viewport
+                // });
             } else {
                 console.warn("Target div not found!");
             }
