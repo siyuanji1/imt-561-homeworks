@@ -305,7 +305,7 @@ registerSketch('sk19', function (p) {
       const spentMin = p.floor(minutesElapsed);
       const spentSec = p.floor((minutesElapsed - spentMin) * 60);
       const spentLabel = spentMin + ' min ' + p.nf(spentSec, 2) + ' sec spent';
-      p.fill(255, 200, 80, 220);
+      p.fill(60, 35, 10, 230);
       p.textSize(13);
       p.text(spentLabel, CX, topY + 18);
     }
