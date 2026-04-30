@@ -104,7 +104,6 @@ registerSketch('sk19', function (p) {
     drawFlame(topY, done);
     drawLabels(fullHeight, layersBurned);
     drawUI(minutesElapsed, totalMinutes, done);
-    drawDragHint(done);
   };
 
   function drawAmbientGlow(topY, done) {
@@ -171,17 +170,6 @@ registerSketch('sk19', function (p) {
       return;
     }
 
-    // drag handle ring when hovered or dragging
-    if (hovering || isDragging) {
-      p.noFill();
-      p.stroke(255, 220, 100, 180);
-      p.strokeWeight(2);
-      p.ellipse(CX, fy - 20, 54, 54);
-      p.noStroke();
-      p.fill(255, 220, 100, 60);
-      p.ellipse(CX, fy - 20, 54, 54);
-    }
-
     // outer flame
     p.noStroke();
     p.fill(255, 120, 0, 160);
@@ -203,6 +191,18 @@ registerSketch('sk19', function (p) {
     p.stroke(80, 50, 20);
     p.strokeWeight(2);
     p.line(CX, topY, CX, topY + 8);
+
+    // drag arrows drawn inside the flame when hovering or dragging
+    if (hovering || isDragging) {
+      const arrowX = CX;
+      const arrowMidY = fy - 20;
+      p.noStroke();
+      p.fill(255, 255, 255, 200);
+      // up triangle
+      p.triangle(arrowX, arrowMidY - 12, arrowX - 7, arrowMidY - 4, arrowX + 7, arrowMidY - 4);
+      // down triangle
+      p.triangle(arrowX, arrowMidY + 12, arrowX - 7, arrowMidY + 4, arrowX + 7, arrowMidY + 4);
+    }
   }
 
   function drawLabels(fullHeight, layersBurned) {
@@ -263,14 +263,4 @@ registerSketch('sk19', function (p) {
     p.text('Reset', CX + 20 + btnW / 2, by + btnH / 2);
   }
 
-  function drawDragHint(done) {
-    if (running || done) return;
-    const topY = candleTopY();
-    // up arrow above flame
-    p.noStroke();
-    p.fill(255, 220, 100, isDragging ? 200 : 120);
-    p.textAlign(p.CENTER, p.CENTER);
-    p.textSize(18);
-    p.text('↕', CX + 38, topY - 20);
-  }
 });
