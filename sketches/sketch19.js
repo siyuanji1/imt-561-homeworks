@@ -12,11 +12,31 @@ registerSketch('sk19', function (p) {
   let running = false;
   let elapsedMs = 0;
   let flameOffset = 0;
+  let savedElapsedMs = 0; // how much of current session is already saved to total
 
   // drag state
   let isDragging = false;
   let dragStartY = 0;
   let dragStartLayers = 6;
+
+  const STORAGE_KEY = 'sk19_total_ms';
+
+  function getLifetimeMs() {
+    try { return parseFloat(localStorage.getItem(STORAGE_KEY)) || 0; }
+    catch (_) { return 0; }
+  }
+
+  function addToLifetime(ms) {
+    if (ms <= 0) return;
+    try { localStorage.setItem(STORAGE_KEY, getLifetimeMs() + ms); }
+    catch (_) {}
+  }
+
+  function saveUnsettledTime() {
+    const unsaved = elapsedMs - savedElapsedMs;
+    addToLifetime(unsaved);
+    savedElapsedMs = elapsedMs;
+  }
 
   function candleTopY() {
     return BASE_Y - totalLayers * LAYER_H;
@@ -58,14 +78,17 @@ registerSketch('sk19', function (p) {
         running = true;
       } else {
         elapsedMs = p.millis() - sessionStart;
+        saveUnsettledTime();
         running = false;
       }
     }
 
     // Reset
     if (inRect(p.mouseX, p.mouseY, CX + 20, by, btnW, btnH)) {
+      saveUnsettledTime();
       running = false;
       elapsedMs = 0;
+      savedElapsedMs = 0;
       sessionStart = null;
     }
   };
@@ -93,7 +116,10 @@ registerSketch('sk19', function (p) {
     const layersBurned = p.min(minutesElapsed / LAYER_MINUTES, totalLayers);
     const done = layersBurned >= totalLayers;
 
-    if (done && running) running = false;
+    if (done && running) {
+      saveUnsettledTime();
+      running = false;
+    }
 
     const fullHeight = totalLayers * LAYER_H;
     const currentHeight = p.map(layersBurned, 0, totalLayers, fullHeight, 0);
@@ -103,7 +129,7 @@ registerSketch('sk19', function (p) {
     drawCandle(topY, currentHeight, fullHeight, layersBurned);
     drawFlame(topY, done);
     drawLabels(fullHeight, layersBurned);
-    drawUI(minutesElapsed, totalMinutes, done);
+    drawUI(minutesElapsed, totalMinutes, done, topY);
   };
 
   function drawAmbientGlow(topY, done) {
@@ -116,21 +142,66 @@ registerSketch('sk19', function (p) {
   }
 
   function drawCandle(topY, currentHeight, fullHeight, layersBurned) {
-    if (currentHeight <= 0) return;
     const cw = 110;
+    const originalTopY = BASE_Y - fullHeight;
+    const burnedLayers = p.floor(layersBurned);
 
-    // body
+    // burned ghost layers above current candle top
+    if (burnedLayers > 0) {
+      const burnedHeight = burnedLayers * LAYER_H;
+      const burnedTopY = BASE_Y - fullHeight;
+      const burnedBottomY = burnedTopY + burnedHeight;
+
+      // charred wax residue background
+      p.noStroke();
+      p.fill(80, 50, 20, 60);
+      p.rect(CX - cw / 2, burnedTopY, cw, burnedHeight, 4, 4, 0, 0);
+
+      // amber glow overlay
+      p.fill(200, 120, 30, 25);
+      p.rect(CX - cw / 2, burnedTopY, cw, burnedHeight, 4, 4, 0, 0);
+
+      // dividers + minute labels inside each burned layer
+      for (let i = 0; i < burnedLayers; i++) {
+        const layerTopY = BASE_Y - fullHeight + i * LAYER_H;
+        const layerMidY = layerTopY + LAYER_H / 2;
+        const minuteLabel = (i + 1) * LAYER_MINUTES + ' min';
+
+        // divider line between burned layers
+        if (i > 0) {
+          p.stroke(160, 100, 40, 120);
+          p.strokeWeight(1);
+          p.line(CX - cw / 2 + 6, layerTopY, CX + cw / 2 - 6, layerTopY);
+        }
+
+        // minute label centered in each burned layer
+        p.noStroke();
+        p.fill(220, 160, 60, 200);
+        p.textAlign(p.CENTER, p.CENTER);
+        p.textSize(11);
+        p.text(minuteLabel, CX, layerMidY);
+      }
+    }
+
+    if (currentHeight <= 0) {
+      // base plate only
+      p.noStroke();
+      p.fill(160, 120, 60);
+      p.rect(CX - cw / 2 - 12, BASE_Y, cw + 24, 12, 3);
+      return;
+    }
+
+    // candle body
     p.noStroke();
     p.fill(245, 235, 210);
-    p.rect(CX - cw / 2, topY, cw, currentHeight, 4);
+    p.rect(CX - cw / 2, topY, cw, currentHeight, 0, 0, 4, 4);
 
-    // layer dividers
+    // layer dividers on remaining candle
     for (let i = 1; i < totalLayers; i++) {
       const lineY = BASE_Y - i * LAYER_H;
       if (lineY < topY) continue;
-      const burned = i <= p.floor(layersBurned);
-      p.stroke(burned ? p.color(180, 130, 80) : p.color(200, 185, 160));
-      p.strokeWeight(burned ? 2 : 1);
+      p.stroke(p.color(200, 185, 160));
+      p.strokeWeight(1);
       p.line(CX - cw / 2 + 6, lineY, CX + cw / 2 - 6, lineY);
     }
 
@@ -145,7 +216,7 @@ registerSketch('sk19', function (p) {
     // side shadow
     p.noStroke();
     p.fill(0, 0, 0, 22);
-    p.rect(CX + cw / 2 - 18, topY, 18, currentHeight, 0, 4, 4, 0);
+    p.rect(CX + cw / 2 - 18, topY, 18, currentHeight, 0, 0, 4, 0);
 
     // base plate
     p.noStroke();
@@ -221,13 +292,31 @@ registerSketch('sk19', function (p) {
     }
   }
 
-  function drawUI(minutesElapsed, totalMinutes, done) {
+  function drawUI(minutesElapsed, totalMinutes, done, topY) {
     const minLeft = p.max(totalMinutes - minutesElapsed, 0);
     const minsDisplay = p.floor(minLeft);
     const secsDisplay = p.floor((minLeft - minsDisplay) * 60);
 
     p.textAlign(p.CENTER, p.CENTER);
     p.noStroke();
+
+    // session elapsed time — displayed just below the flame
+    if (minutesElapsed > 0 || running) {
+      const spentMin = p.floor(minutesElapsed);
+      const spentSec = p.floor((minutesElapsed - spentMin) * 60);
+      const spentLabel = spentMin + ' min ' + p.nf(spentSec, 2) + ' sec spent';
+      p.fill(255, 200, 80, 220);
+      p.textSize(13);
+      p.text(spentLabel, CX, topY + 18);
+    }
+
+    // lifetime total — below the base plate
+    const lifetimeMin = p.floor(getLifetimeMs() / 60000);
+    if (lifetimeMin > 0) {
+      p.fill(160, 130, 90, 180);
+      p.textSize(12);
+      p.text('Total meditated: ' + lifetimeMin + ' min', CX, BASE_Y + 34);
+    }
 
     if (done) {
       p.fill(255, 180, 60);
