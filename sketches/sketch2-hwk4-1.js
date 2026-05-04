@@ -277,8 +277,7 @@ registerSketch('sk2', function (p) {
   }
 
   function drawLabels(fullHeight, layersBurned) {
-    const cw = 110;
-    p.textAlign(p.RIGHT, p.CENTER);
+    p.textAlign(p.CENTER, p.CENTER);
     p.textSize(12);
     p.noStroke();
 
@@ -287,8 +286,8 @@ registerSketch('sk2', function (p) {
       const burned = layersBurned >= i;
       const active = p.floor(layersBurned) === i - 1;
 
-      p.fill(burned ? p.color(120, 90, 60, 100) : active ? p.color(255, 200, 80) : p.color(160, 140, 110));
-      p.text(i * LAYER_MINUTES + ' min', CX - cw / 2 - 8, labelY);
+      p.fill(burned ? p.color(180, 130, 60, 180) : active ? p.color(180, 120, 20) : p.color(160, 130, 90));
+      p.text(i * LAYER_MINUTES + ' min', CX, labelY);
     }
   }
 
