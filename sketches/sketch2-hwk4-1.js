@@ -300,15 +300,13 @@ registerSketch('sk2', function (p) {
     p.textAlign(p.CENTER, p.CENTER);
     p.noStroke();
 
-    // time spent — centered inside the base plate
-    if (minutesElapsed > 0 || running) {
-      const spentMin = p.floor(minutesElapsed);
-      const spentSec = p.floor((minutesElapsed - spentMin) * 60);
-      const spentLabel = spentMin + ' min ' + p.nf(spentSec, 2) + ' sec spent';
-      p.fill(255, 240, 200, 240);
-      p.textSize(13);
-      p.text(spentLabel, CX, BASE_Y + 18);
-    }
+    // time spent — always shown centered inside the base plate
+    const spentMin = p.floor(minutesElapsed);
+    const spentSec = p.floor((minutesElapsed - spentMin) * 60);
+    const spentLabel = spentMin + ' min ' + p.nf(spentSec, 2) + ' sec spent';
+    p.fill(255, 240, 200, 240);
+    p.textSize(13);
+    p.text(spentLabel, CX, BASE_Y + 18);
 
     // lifetime total — below the base plate
     const lifetimeMin = p.floor(getLifetimeMs() / 60000);
