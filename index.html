@@ -63,7 +63,7 @@
       <div id="sketch-drawing-sk2" class="sketch-evolution">
         <div class="welcome-template hwk-template" aria-labelledby="sk2-notes-title">
           <p>
-            <strong>Context of use:</strong> This is a digital candle clock designed for people who meditate. Many
+            This is a digital candle clock designed for people who meditate. Many
             people burn real candles during meditation to mark time and create atmosphere, but real candles are a fire
             hazard — especially if you fall into a deep meditation and lose track of time. This clock is a safe
             replacement that feels just as calming and personal as the real thing.
@@ -81,26 +81,23 @@
               </figure>
             </div>
             <p>
-              <strong>Design process:</strong> The first sketch established the core idea: a tall candle body divided
-              into equal layers, each representing 5 minutes, with a flame on top. The second iteration refined where
-              information should live — instead of showing a countdown number below the candle, the elapsed time was
-              moved into the base plate so it sits physically inside the object, making it feel like part of the candle
-              rather than an external readout. The layer labels were also moved from outside the candle to inside each
-              wax segment, reinforcing the idea that the candle itself is the clock.
+              My first sketch was pretty simple: a tall candle divided into layers with a flame on top and the minute
+              labels written on the side. It got the idea across but felt a bit disconnected because all the numbers
+              were floating outside the candle instead of being part of it. In the second iteration I moved everything
+              inside. The time spent now sits in the base plate and the layer labels are centered within each wax
+              segment, so the candle itself becomes the whole interface and nothing feels tacked on.
             </p>
             <p>
-              Key visualization principles applied: <strong>proximity</strong> — time information lives on the object
-              it describes; <strong>preattentive processing</strong> — the shrinking height of the candle communicates
-              remaining time instantly without requiring any reading; <strong>metaphor</strong> — the candle is a
-              familiar object that carries existing meaning, reducing the learning curve to zero; and
-              <strong>interaction as affordance</strong> — dragging the flame upward to set the timer mirrors the
-              physical act of striking a match, making the gesture feel intuitive.
+              A big part of why this works is that people already know what a burning candle means. You do not need
+              a legend or instructions because the mental model is already there. As the wax melts down you can see
+              exactly how much time is left just by glancing at the height, which is a much more natural read than
+              watching a number count down. I also wanted the interaction to feel physical, so dragging the flame
+              upward to set the timer is meant to feel like striking a match rather than clicking a button.
             </p>
             <p>
-              <strong>Self-reflection:</strong> In a future version I would add a soft chime sound when each layer
-              burns away, giving an audio cue without breaking the meditative state. I would also explore letting
-              users save named sessions (e.g. "morning sit" or "evening sit") so the candle remembers their preferred
-              duration and lights automatically each time.
+              If I kept working on this I would add a soft bell sound each time a layer burns away so you get a quiet
+              audio reminder without having to look at the screen. I would also let users save a preferred duration so
+              the candle remembers your usual session length and you do not have to set it every time.
             </p>
           </article>
         </div>
@@ -113,9 +110,9 @@
       <div id="sketch-drawing-sk3" class="sketch-evolution">
         <div class="welcome-template hwk-template" aria-labelledby="sk3-notes-title">
           <p>
-            <strong>Context of use:</strong> This clock is designed for hikers. Instead of showing time as numbers on
-            a dial, it shows time as progress up a mountain trail. The hiker looks at it and immediately knows how long
-            they have been hiking, how high they have climbed in feet, and what weather is coming ahead on the trail.
+            This clock is designed for hikers. Instead of showing time as numbers on a dial, it shows time as progress
+            up a mountain trail. The hiker looks at it and immediately knows how long they have been hiking, how high
+            they have climbed in feet, and what weather is coming ahead on the trail.
           </p>
 
           <article class="clock-template">
@@ -130,26 +127,25 @@
               </figure>
             </div>
             <p>
-              <strong>Design process:</strong> The first sketch established the core spatial metaphor: trail distance
-              maps to time, and elevation markers at each waypoint show both progress and physical achievement. Weather
-              icons were placed above the trail from the start, tied to specific forecast hours, so the hiker could
-              see upcoming conditions at a glance. The second iteration added predicted arrival times to each waypoint
-              badge and split the display into two sides — ascent forecasts on the right and descent forecasts on the
-              left — so a hiker can plan the full round trip without switching views.
+              The first sketch was mostly about figuring out the core layout. I drew the trail going up the mountain
+              with checkpoints along the way, each one showing the elevation and a weather icon. The idea was that
+              when you are on a hike you almost never ask what time it is, you ask how far to the top, so using the
+              trail itself as the timeline felt more natural than a clock face. The mountain is also split into color
+              zones, green at the bottom for forest, rocky gray in the middle, and white snow near the summit, which
+              gives you a quick visual sense of how high each point actually is.
             </p>
             <p>
-              Key visualization principles applied: <strong>layered encoding</strong> — each waypoint communicates
-              elevation, time, and weather simultaneously without clutter; <strong>spatial metaphor</strong> — the
-              mountain shape maps directly to physical effort, making the visualization immediately legible to anyone
-              who has hiked; <strong>color zoning</strong> — the mountain is split into green forest, rocky, and snow
-              bands so elevation context is readable at a glance; and <strong>preattentive hierarchy</strong> — the
-              moving hiker dot draws the eye first, then the badges provide detail on demand.
+              In the second iteration I added predicted arrival times to each checkpoint so you are not just seeing
+              where you are but when you will get there. I also split the badges into two sides: the right side shows
+              the weather forecast for the way up and the left side shows what to expect on the way back down. That
+              way you can see the whole trip at once and make a real decision about whether to push to the summit or
+              turn around before conditions change. The hiker dot moves automatically as time passes so you always
+              know where you would be on the trail right now.
             </p>
             <p>
-              <strong>Self-reflection:</strong> I would improve the descent timing to account for different downhill
-              speeds rather than assuming the same pace as the ascent, which would make the arrival predictions more
-              realistic. I would also add a simple toggle to switch between metric and imperial units so the
-              visualization is useful to a wider audience of hikers.
+              One thing I would improve is the descent timing. Right now it assumes you walk back down at the same
+              speed you climbed, which is not realistic since most people descend faster. I would also let users
+              input their own trail so the visualization works for any hike rather than just this one mountain.
             </p>
           </article>
         </div>
