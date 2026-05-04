@@ -308,13 +308,6 @@ registerSketch('sk2', function (p) {
     p.textSize(13);
     p.text(spentLabel, CX, BASE_Y + 18);
 
-    // lifetime total — below the base plate
-    const lifetimeMin = p.floor(getLifetimeMs() / 60000);
-    if (lifetimeMin > 0) {
-      p.fill(160, 130, 90, 180);
-      p.textSize(12);
-      p.text('Total meditated: ' + lifetimeMin + ' min', CX, BASE_Y + 54);
-    }
 
     if (done) {
       p.fill(255, 180, 60);
