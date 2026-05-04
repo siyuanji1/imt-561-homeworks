@@ -10,6 +10,16 @@ registerSketch('sk3', function (p) {
     { t: 1.0,  label: 'Summit', feet: 3567, desc: 'You made it! 360° panoramic views await.' },
   ];
 
+  // descent waypoints — same trail reversed, timed from summit back to trailhead
+  const DESCENT = [
+    { t: 0.85, label: '3 hr',   feet: 3100 },
+    { t: 0.70, label: '2 hr',   feet: 2640 },
+    { t: 0.50, label: '1 hr',   feet: 1820 },
+    { t: 0.30, label: '30 min', feet: 980  },
+    { t: 0.15, label: '15 min', feet: 420  },
+    { t: 0,    label: 'Finish', feet: 0    },
+  ];
+
   const WEATHER = [
     { hour: 6,  type: 'sunrise', desc: 'Sunrise — cool and clear. Best time to start.' },
     { hour: 11, type: 'sun',     desc: 'Late morning — warm and sunny. Peak conditions.' },
@@ -130,14 +140,6 @@ registerSketch('sk3', function (p) {
       }
     }
 
-    // 5. click weather icon on trail → expand / collapse
-    for (let i = 0; i < WEATHER.length; i++) {
-      const pt = weatherTrailPoint(i);
-      if (p.dist(p.mouseX, p.mouseY, pt.x, pt.y - 48) < 18) {
-        expandedWeather = (expandedWeather === i) ? null : i;
-        return;
-      }
-    }
 
     // 4. speed buttons
     const bx = W - 110, by = H - 44;
@@ -162,11 +164,9 @@ registerSketch('sk3', function (p) {
     drawMountain();
     drawTrail();
     drawWaypointMarkers();
-    drawTrailWeather();
     drawHiker();
     drawTrailHoverElevation();  // 3
     drawHikerTooltip();         // 2
-    drawWeatherCard();          // 5
     drawSpeedControls();        // 4
     drawTimeDisplay();
   };
@@ -243,84 +243,106 @@ registerSketch('sk3', function (p) {
       p.line(trailPts[i].x, trailPts[i].y, trailPts[i+4].x, trailPts[i+4].y);
   }
 
-  // ── waypoints ────────────────────────────────────────────────────
+  // ── waypoints with ascent/descent forecast badges ────────────────
   function drawWaypointMarkers() {
-    for (let i = 0; i < TRAIL.length; i++) {
-      const wp  = TRAIL[i];
+    const startSec = simSeconds % 86400;
+
+    // dots for all trail waypoints
+    for (const wp of TRAIL) {
       const pt  = pointAtT(wp.t);
       const hov = hoveredWP === wp || manualT === wp.t;
-      const side = (i % 2 === 0) ? -1 : 1; // -1 = left, 1 = right
-
-      // dot
       p.noStroke();
       p.fill(255, 255, 255, hov ? 255 : 200);
       p.ellipse(pt.x, pt.y, hov ? 13 : 9, hov ? 13 : 9);
       p.fill(hov ? p.color(255,140,0) : p.color(190,140,50));
       p.ellipse(pt.x, pt.y, hov ? 8 : 5, hov ? 8 : 5);
+    }
 
-      // combined pill badge alternating left/right
-      const tag   = wp.feet > 0 ? wp.label + ' · ' + wp.feet + ' ft' : wp.label;
-      const tw    = tag.length * 5.8 + 14;
-      const th    = 18;
-      const offX  = side * (tw / 2 + 18);
-      const bx    = pt.x + offX - tw / 2;
-      const by    = pt.y - th / 2;
+    // ── ascent badges: right side, warm amber ─────────────────────
+    for (const wp of TRAIL) {
+      const pt  = pointAtT(wp.t);
+      const hov = hoveredWP === wp || manualT === wp.t;
 
-      // connector line from dot to badge
-      p.stroke(255, 255, 255, 80);
-      p.strokeWeight(1);
-      p.line(pt.x, pt.y, pt.x + offX - side * (tw / 2), pt.y);
+      const arrivalSec  = startSec + wp.t * HIKE_DURATION_MIN * 60;
+      const arrivalHour = (arrivalSec / 3600) % 24;
+      const forecast    = forecastWeather(arrivalHour);
+      const arrH = p.floor(arrivalHour);
+      const arrM = p.floor((arrivalHour - arrH) * 60);
+      const timeStr = p.nf(arrH, 2) + ':' + p.nf(arrM, 2);
+      const tag = wp.feet > 0
+        ? '↑ ' + wp.label + ' · ' + wp.feet + ' ft   ' + timeStr
+        : '↑ ' + wp.label + '   ' + timeStr;
 
-      // badge background
+      const tw = tag.length * 5.6 + 30;
+      const th = 22;
+      const bx = pt.x + 14;
+      const by = pt.y - th / 2;
+
+      p.stroke(255, 200, 100, 70); p.strokeWeight(1);
+      p.line(pt.x + 5, pt.y, bx, pt.y);
+
       p.noStroke();
-      p.fill(0, 0, 0, hov ? 180 : 130);
-      p.rect(bx, by, tw, th, 5);
+      p.fill(60, 30, 0, hov ? 195 : 145);
+      p.rect(bx, by, tw, th, 6);
 
-      // badge text
-      p.fill(hov ? p.color(255,220,100) : p.color(255,245,210));
-      p.textSize(9.5);
-      p.textAlign(p.CENTER, p.CENTER);
-      p.text(tag, bx + tw / 2, by + th / 2);
+      drawWeatherIcon(forecast.type, bx + 12, by + th / 2, 8);
+
+      p.fill(hov ? p.color(255,220,100) : p.color(255,235,190));
+      p.textSize(9.5); p.textAlign(p.LEFT, p.CENTER); p.noStroke();
+      p.text(tag, bx + 22, by + th / 2);
+    }
+
+    // ── descent badges: left side, cool blue ──────────────────────
+    for (const wp of DESCENT) {
+      const pt = pointAtT(wp.t);
+
+      // time from summit = how far along descent (1-t) × duration
+      const descentElapsed = (1 - wp.t) * HIKE_DURATION_MIN * 60;
+      const arrivalSec  = startSec + HIKE_DURATION_MIN * 60 + descentElapsed;
+      const arrivalHour = (arrivalSec / 3600) % 24;
+      const forecast    = forecastWeather(arrivalHour);
+      const arrH = p.floor(arrivalHour);
+      const arrM = p.floor((arrivalHour - arrH) * 60);
+      const timeStr = p.nf(arrH, 2) + ':' + p.nf(arrM, 2);
+      const tag = timeStr + '   ↓ ' + (wp.feet > 0
+        ? wp.feet + ' ft · ' + wp.label
+        : wp.label);
+
+      const tw = tag.length * 5.6 + 30;
+      const th = 22;
+      const bx = pt.x - 14 - tw;
+      const by = pt.y - th / 2;
+
+      // connector from trail to right edge of badge
+      p.stroke(150, 200, 255, 70); p.strokeWeight(1);
+      p.line(pt.x - 5, pt.y, bx + tw, pt.y);
+
+      p.noStroke();
+      p.fill(0, 20, 50, 145);
+      p.rect(bx, by, tw, th, 6);
+
+      // icon on right side of badge (closest to trail)
+      drawWeatherIcon(forecast.type, bx + tw - 12, by + th / 2, 8);
+
+      p.fill(190, 220, 255);
+      p.textSize(9.5); p.textAlign(p.LEFT, p.CENTER); p.noStroke();
+      p.text(tag, bx + 6, by + th / 2);
     }
   }
 
-  // ── weather pinned to trail ──────────────────────────────────────
-  function weatherTrailPoint(i) {
-    const t = WEATHER[i].hour / 24;
-    return pointAtT(t);
-  }
+  // total hike duration in minutes (start → summit)
+  const HIKE_DURATION_MIN = 210;
 
-  function drawTrailWeather() {
-    for (let i = 0; i < WEATHER.length; i++) {
-      const w   = WEATHER[i];
-      const pt  = weatherTrailPoint(i);
-      const ix  = pt.x;
-      const iy  = pt.y - 48; // float well above trail to avoid badge overlap
-      const active = expandedWeather === i;
-
-      // stem connecting icon to trail
-      p.stroke(255, 255, 255, 100);
-      p.strokeWeight(1);
-      p.line(ix, pt.y - 4, ix, iy + 14);
-
-      // highlight ring when active
-      if (active) {
-        p.noFill();
-        p.stroke(255, 220, 80, 200);
-        p.strokeWeight(2);
-        p.ellipse(ix, iy, 38, 38);
-      }
-
-      drawWeatherIcon(w.type, ix, iy, active ? 16 : 13);
-
-      // hour label below icon
-      p.noStroke();
-      p.fill(255, 255, 255, 170);
-      p.textSize(8);
-      p.textAlign(p.CENTER, p.TOP);
-      p.text(w.hour + 'h', ix, pt.y + 4);
+  function forecastWeather(hour24) {
+    // return the weather type closest to the given hour
+    let best = WEATHER[0], bestDiff = 99;
+    for (const w of WEATHER) {
+      const diff = Math.abs(w.hour - hour24);
+      if (diff < bestDiff) { bestDiff = diff; best = w; }
     }
+    return best;
   }
+
 
   function drawWeatherIcon(type, x, y, r) {
     p.noStroke();
@@ -404,42 +426,6 @@ registerSketch('sk3', function (p) {
     p.text(label, tx + 24, ty + 9);
   }
 
-  // ── interaction 5: speech bubble from trail icon ─────────────────
-  function drawWeatherCard() {
-    if (expandedWeather === null) return;
-    const w  = WEATHER[expandedWeather];
-    const pt = weatherTrailPoint(expandedWeather);
-    const ix = pt.x;
-    const iy = pt.y - 48;
-
-    const bw = 160, bh = 58;
-    const bx = p.constrain(ix - bw / 2, 4, W - bw - 4);
-    const by = iy - bh - 14;
-
-    // bubble body
-    p.noStroke(); p.fill(10, 10, 20, 220);
-    p.rect(bx, by, bw, bh, 8);
-
-    // tail pointing down to icon
-    p.fill(10, 10, 20, 220);
-    p.triangle(ix - 7, by + bh, ix + 7, by + bh, ix, iy - 14);
-
-    // icon inside bubble
-    drawWeatherIcon(w.type, bx + 20, by + bh / 2, 13);
-
-    // text
-    p.fill(255, 240, 200); p.textSize(10.5); p.textAlign(p.LEFT, p.TOP);
-    p.noStroke();
-    const words = w.desc.split(' ');
-    let line = '', lineY = by + 8;
-    for (const word of words) {
-      const test = line + word + ' ';
-      if (test.length * 5.8 > 110 && line !== '') {
-        p.text(line.trim(), bx + 36, lineY); lineY += 14; line = word + ' ';
-      } else { line = test; }
-    }
-    if (line) p.text(line.trim(), bx + 36, lineY);
-  }
 
   // ── interaction 4: speed controls ────────────────────────────────
   function drawSpeedControls() {
@@ -475,6 +461,12 @@ registerSketch('sk3', function (p) {
       p.fill(20,10,0); p.textSize(10); p.textAlign(p.CENTER,p.CENTER);
       p.text('click waypoint to resume', 71, 59);
     }
+
+    // legend: ascent / descent badge key
+    p.noStroke(); p.fill(0,0,0,110); p.rect(12, H-36, 170, 20, 5);
+    p.textSize(9.5); p.textAlign(p.LEFT, p.CENTER); p.noStroke();
+    p.fill(255, 235, 190); p.text('↑ ascent forecast', 20, H-26);
+    p.fill(190, 220, 255); p.text('↓ descent forecast', 110, H-26);
   }
 
 });
