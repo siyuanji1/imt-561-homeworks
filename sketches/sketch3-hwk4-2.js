@@ -110,16 +110,6 @@ registerSketch('sk3', function (p) {
       ctx.clip();
     }
 
-    // --- far background ridge (flat grey-blue) ---
-    p.noStroke();
-    p.fill(120, 140, 160, 150);
-    p.beginShape();
-    p.vertex(0, H);
-    p.bezierVertex(W * 0.1, H - 120, W * 0.4, 60, W * 0.65, 90);
-    p.bezierVertex(W * 0.8, 110, W * 0.9, 170, W, 190);
-    p.vertex(W, H);
-    p.endShape(p.CLOSE);
-
     // --- near mountain with three elevation zones ---
     ctx.save();
     clipMountain();
