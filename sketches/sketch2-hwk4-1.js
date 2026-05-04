@@ -320,10 +320,6 @@ registerSketch('sk2', function (p) {
       p.fill(255, 180, 60);
       p.textSize(18);
       p.text('Session complete', CX, p.height - 118);
-    } else if (!running && elapsedMs === 0) {
-      p.fill(180, 160, 120);
-      p.textSize(14);
-      p.text(totalMinutes + ' min  ·  drag flame to adjust', CX, p.height - 118);
     }
 
     const by = p.height - 70;
