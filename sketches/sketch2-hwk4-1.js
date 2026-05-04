@@ -187,7 +187,7 @@ registerSketch('sk2', function (p) {
       // base plate only
       p.noStroke();
       p.fill(160, 120, 60);
-      p.rect(CX - cw / 2 - 12, BASE_Y, cw + 24, 12, 3);
+      p.rect(CX - cw / 2 - 12, BASE_Y, cw + 24, 36, 3);
       return;
     }
 
@@ -221,7 +221,7 @@ registerSketch('sk2', function (p) {
     // base plate
     p.noStroke();
     p.fill(160, 120, 60);
-    p.rect(CX - cw / 2 - 12, BASE_Y, cw + 24, 12, 3);
+    p.rect(CX - cw / 2 - 12, BASE_Y, cw + 24, 36, 3);
   }
 
   function drawFlame(topY, done) {
@@ -300,22 +300,22 @@ registerSketch('sk2', function (p) {
     p.textAlign(p.CENTER, p.CENTER);
     p.noStroke();
 
-    // time spent — displayed inside the bottom layer of the candle
+    // time spent — centered inside the base plate
     if (minutesElapsed > 0 || running) {
       const spentMin = p.floor(minutesElapsed);
       const spentSec = p.floor((minutesElapsed - spentMin) * 60);
       const spentLabel = spentMin + ' min ' + p.nf(spentSec, 2) + ' sec spent';
-      p.fill(80, 55, 25, 220);
-      p.textSize(12);
-      p.text(spentLabel, CX, BASE_Y - LAYER_H / 2);
+      p.fill(255, 240, 200, 240);
+      p.textSize(13);
+      p.text(spentLabel, CX, BASE_Y + 18);
     }
 
-    // lifetime total — further below the base plate
+    // lifetime total — below the base plate
     const lifetimeMin = p.floor(getLifetimeMs() / 60000);
     if (lifetimeMin > 0) {
       p.fill(160, 130, 90, 180);
       p.textSize(12);
-      p.text('Total meditated: ' + lifetimeMin + ' min', CX, BASE_Y + 38);
+      p.text('Total meditated: ' + lifetimeMin + ' min', CX, BASE_Y + 54);
     }
 
     if (done) {
