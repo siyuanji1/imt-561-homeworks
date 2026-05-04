@@ -26,7 +26,6 @@ const SKETCH_SCRIPT_BY_ID = {
     sk17: 'sketches/sketch17.js',
     sk18: 'sketches/sketch18.js',
     sk15: 'sketches/sketch15-hwk5.js',
-    sk19: 'sketches/sketch19.js',
 };
 
 // Default sketch selection logic:
