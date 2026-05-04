@@ -42,12 +42,47 @@ registerSketch('sk3', function (p) {
   };
 
   // ── trail geometry ───────────────────────────────────────────────
+  function mountainSurfaceY(bx) {
+    // sample the mountain bezier to find y at a given x
+    const p0x = 0,       p0y = H;
+    const p1x = W*0.15,  p1y = H - 90;
+    const p2x = W*0.5,   p2y = 90;
+    const p3x = W*0.75,  p3y = 108;
+    let best = H, bestT = 0;
+    for (let i = 0; i <= 200; i++) {
+      const t  = i / 200;
+      const mt = 1 - t;
+      const cx = mt*mt*mt*p0x + 3*mt*mt*t*p1x + 3*mt*t*t*p2x + t*t*t*p3x;
+      const cy = mt*mt*mt*p0y + 3*mt*mt*t*p1y + 3*mt*t*t*p2y + t*t*t*p3y;
+      if (Math.abs(cx - bx) < 8 && cy < best) { best = cy; bestT = t; }
+    }
+    return best;
+  }
+
+  function findMountainPeak() {
+    // find the x,y where the mountain bezier reaches its minimum y
+    const p0x = 0,       p0y = H;
+    const p1x = W*0.15,  p1y = H - 90;
+    const p2x = W*0.5,   p2y = 90;
+    const p3x = W*0.75,  p3y = 108;
+    let minY = H, peakX = 0;
+    for (let i = 0; i <= 400; i++) {
+      const t  = i / 400;
+      const mt = 1 - t;
+      const cx = mt*mt*mt*p0x + 3*mt*mt*t*p1x + 3*mt*t*t*p2x + t*t*t*p3x;
+      const cy = mt*mt*mt*p0y + 3*mt*mt*t*p1y + 3*mt*t*t*p2y + t*t*t*p3y;
+      if (cy < minY) { minY = cy; peakX = cx; }
+    }
+    return { x: peakX, y: minY };
+  }
+
   function buildTrail() {
+    const peak = findMountainPeak();
     trailPts = [];
     for (let i = 0; i <= 300; i++) {
       const t = i / 300;
-      const x    = p.map(t, 0, 1, 160, W - 60);
-      const baseY = p.map(t, 0, 1, H - 60, 120);
+      const x    = p.map(t, 0, 1, 160, peak.x);
+      const baseY = p.map(t, 0, 1, H - 60, peak.y + 12);
       const wave  = p.sin(t * p.PI * 3) * 18 * (1 - t);
       trailPts.push({ x, y: baseY + wave });
     }
@@ -98,7 +133,7 @@ registerSketch('sk3', function (p) {
     // 5. click weather icon on trail → expand / collapse
     for (let i = 0; i < WEATHER.length; i++) {
       const pt = weatherTrailPoint(i);
-      if (p.dist(p.mouseX, p.mouseY, pt.x, pt.y - 28) < 18) {
+      if (p.dist(p.mouseX, p.mouseY, pt.x, pt.y - 48) < 18) {
         expandedWeather = (expandedWeather === i) ? null : i;
         return;
       }
@@ -210,23 +245,42 @@ registerSketch('sk3', function (p) {
 
   // ── waypoints ────────────────────────────────────────────────────
   function drawWaypointMarkers() {
-    for (const wp of TRAIL) {
-      const pt = pointAtT(wp.t);
+    for (let i = 0; i < TRAIL.length; i++) {
+      const wp  = TRAIL[i];
+      const pt  = pointAtT(wp.t);
       const hov = hoveredWP === wp || manualT === wp.t;
+      const side = (i % 2 === 0) ? -1 : 1; // -1 = left, 1 = right
+
+      // dot
       p.noStroke();
-      p.fill(255,255,255, hov ? 255 : 200);
+      p.fill(255, 255, 255, hov ? 255 : 200);
       p.ellipse(pt.x, pt.y, hov ? 13 : 9, hov ? 13 : 9);
       p.fill(hov ? p.color(255,140,0) : p.color(190,140,50));
       p.ellipse(pt.x, pt.y, hov ? 8 : 5, hov ? 8 : 5);
+
+      // combined pill badge alternating left/right
+      const tag   = wp.feet > 0 ? wp.label + ' · ' + wp.feet + ' ft' : wp.label;
+      const tw    = tag.length * 5.8 + 14;
+      const th    = 18;
+      const offX  = side * (tw / 2 + 18);
+      const bx    = pt.x + offX - tw / 2;
+      const by    = pt.y - th / 2;
+
+      // connector line from dot to badge
+      p.stroke(255, 255, 255, 80);
+      p.strokeWeight(1);
+      p.line(pt.x, pt.y, pt.x + offX - side * (tw / 2), pt.y);
+
+      // badge background
       p.noStroke();
-      p.fill(255,255,255,210); p.textSize(10);
-      p.textAlign(p.CENTER, p.BOTTOM);
-      p.text(wp.label, pt.x, pt.y - 11);
-      if (wp.feet > 0) {
-        p.fill(200,235,255,180); p.textSize(9);
-        p.textAlign(p.CENTER, p.TOP);
-        p.text(wp.feet + ' ft', pt.x, pt.y + 9);
-      }
+      p.fill(0, 0, 0, hov ? 180 : 130);
+      p.rect(bx, by, tw, th, 5);
+
+      // badge text
+      p.fill(hov ? p.color(255,220,100) : p.color(255,245,210));
+      p.textSize(9.5);
+      p.textAlign(p.CENTER, p.CENTER);
+      p.text(tag, bx + tw / 2, by + th / 2);
     }
   }
 
@@ -241,7 +295,7 @@ registerSketch('sk3', function (p) {
       const w   = WEATHER[i];
       const pt  = weatherTrailPoint(i);
       const ix  = pt.x;
-      const iy  = pt.y - 28; // float above trail
+      const iy  = pt.y - 48; // float well above trail to avoid badge overlap
       const active = expandedWeather === i;
 
       // stem connecting icon to trail
@@ -356,7 +410,7 @@ registerSketch('sk3', function (p) {
     const w  = WEATHER[expandedWeather];
     const pt = weatherTrailPoint(expandedWeather);
     const ix = pt.x;
-    const iy = pt.y - 28;
+    const iy = pt.y - 48;
 
     const bw = 160, bh = 58;
     const bx = p.constrain(ix - bw / 2, 4, W - bw - 4);
