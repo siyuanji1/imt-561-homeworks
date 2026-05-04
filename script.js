@@ -55,7 +55,7 @@ function loadSketchScriptIfNeeded(sketchId) {
         const src = SKETCH_SCRIPT_BY_ID[sketchId];
         if (!src) return reject(new Error('No script configured for ' + sketchId));
         const s = document.createElement('script');
-        s.src = src;
+        s.src = src + '?v=' + Date.now();
         s.onload = () => { window._sketchScriptsLoaded[sketchId] = true; resolve(); };
         s.onerror = () => reject(new Error('Failed to load ' + src));
         document.body.appendChild(s);
