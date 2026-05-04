@@ -218,10 +218,23 @@ registerSketch('sk2', function (p) {
     p.fill(0, 0, 0, 22);
     p.rect(CX + cw / 2 - 18, topY, 18, currentHeight, 0, 0, 4, 0);
 
-    // base plate
-    p.noStroke();
-    p.fill(160, 120, 60);
-    p.rect(CX - cw / 2 - 12, BASE_Y, cw + 24, 36, 3);
+    // plate (saucer style)
+    const pw = cw + 56;
+    const ph = 28;
+    const px = CX - pw / 2;
+    const py = BASE_Y + 2;
+    // drop shadow
+    p.noStroke(); p.fill(0, 0, 0, 30);
+    p.ellipse(CX, py + ph + 7, pw + 16, 14);
+    // outer plate body
+    p.fill(145, 105, 50);
+    p.rect(px, py, pw, ph, 4, 4, 14, 14);
+    // inner surface
+    p.fill(190, 150, 80);
+    p.rect(px + 7, py + 4, pw - 14, ph - 10, 3, 3, 10, 10);
+    // rim highlight
+    p.fill(230, 200, 130, 160);
+    p.rect(px + 10, py + 5, pw - 20, 4, 2);
   }
 
   function drawFlame(topY, done) {
@@ -263,15 +276,15 @@ registerSketch('sk2', function (p) {
     p.strokeWeight(2);
     p.line(CX, topY, CX, topY + 8);
 
-    // drag arrows drawn inside the flame when hovering or dragging
-    if (hovering || isDragging) {
+    // drag arrows: always pulse when idle before session starts, solid on hover/drag
+    const idle = !running && elapsedMs === 0;
+    const pulse = idle ? (p.sin(p.frameCount * 0.06) * 0.5 + 0.5) : 1;
+    if (hovering || isDragging || idle) {
       const arrowX = CX;
       const arrowMidY = fy - 20;
       p.noStroke();
-      p.fill(255, 255, 255, 200);
-      // up triangle
+      p.fill(255, 255, 255, 210 * pulse);
       p.triangle(arrowX, arrowMidY - 12, arrowX - 7, arrowMidY - 4, arrowX + 7, arrowMidY - 4);
-      // down triangle
       p.triangle(arrowX, arrowMidY + 12, arrowX - 7, arrowMidY + 4, arrowX + 7, arrowMidY + 4);
     }
   }
@@ -299,13 +312,13 @@ registerSketch('sk2', function (p) {
     p.textAlign(p.CENTER, p.CENTER);
     p.noStroke();
 
-    // time spent — always shown centered inside the base plate
+    // time spent — centered inside the plate
     const spentMin = p.floor(minutesElapsed);
     const spentSec = p.floor((minutesElapsed - spentMin) * 60);
     const spentLabel = spentMin + ' min ' + p.nf(spentSec, 2) + ' sec spent';
     p.fill(255, 240, 200, 240);
-    p.textSize(13);
-    p.text(spentLabel, CX, BASE_Y + 18);
+    p.textSize(12);
+    p.text(spentLabel, CX, BASE_Y + 17);
 
 
     if (done) {
