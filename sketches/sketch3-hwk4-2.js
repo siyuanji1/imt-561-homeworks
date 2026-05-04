@@ -304,9 +304,7 @@ registerSketch('sk3', function (p) {
       const arrH = p.floor(arrivalHour);
       const arrM = p.floor((arrivalHour - arrH) * 60);
       const timeStr = p.nf(arrH, 2) + ':' + p.nf(arrM, 2);
-      const tag = timeStr + '   ↓ ' + (wp.feet > 0
-        ? wp.feet + ' ft · ' + wp.label
-        : wp.label);
+      const tag = timeStr + '   ↓ ' + (wp.feet > 0 ? wp.feet + ' ft' : wp.label);
 
       const tw = tag.length * 5.6 + 30;
       const th = 22;
