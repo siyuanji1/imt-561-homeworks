@@ -300,22 +300,22 @@ registerSketch('sk2', function (p) {
     p.textAlign(p.CENTER, p.CENTER);
     p.noStroke();
 
-    // session elapsed time — displayed just below the flame
+    // time spent — displayed at the candle base
     if (minutesElapsed > 0 || running) {
       const spentMin = p.floor(minutesElapsed);
       const spentSec = p.floor((minutesElapsed - spentMin) * 60);
       const spentLabel = spentMin + ' min ' + p.nf(spentSec, 2) + ' sec spent';
-      p.fill(60, 35, 10, 230);
+      p.fill(220, 190, 140, 230);
       p.textSize(13);
-      p.text(spentLabel, CX, topY + 18);
+      p.text(spentLabel, CX, BASE_Y + 20);
     }
 
-    // lifetime total — below the base plate
+    // lifetime total — further below the base plate
     const lifetimeMin = p.floor(getLifetimeMs() / 60000);
     if (lifetimeMin > 0) {
       p.fill(160, 130, 90, 180);
       p.textSize(12);
-      p.text('Total meditated: ' + lifetimeMin + ' min', CX, BASE_Y + 34);
+      p.text('Total meditated: ' + lifetimeMin + ' min', CX, BASE_Y + 38);
     }
 
     if (done) {
@@ -326,10 +326,6 @@ registerSketch('sk2', function (p) {
       p.fill(180, 160, 120);
       p.textSize(14);
       p.text(totalMinutes + ' min  ·  drag flame to adjust', CX, p.height - 118);
-    } else {
-      p.fill(200, 180, 140);
-      p.textSize(15);
-      p.text(p.nf(minsDisplay, 2) + ':' + p.nf(secsDisplay, 2) + ' remaining', CX, p.height - 118);
     }
 
     const by = p.height - 70;
