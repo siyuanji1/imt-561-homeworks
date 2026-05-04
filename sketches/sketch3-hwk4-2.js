@@ -36,8 +36,8 @@ registerSketch('sk3', function (p) {
     const steps = 300;
     for (let i = 0; i <= steps; i++) {
       const t = i / steps;
-      const x = p.map(t, 0, 1, 60, W - 60);
-      const baseY = p.map(t, 0, 1, H - 80, 120);
+      const x = p.map(t, 0, 1, 160, W - 60);
+      const baseY = p.map(t, 0, 1, H - 60, 120);
       const wave = p.sin(t * p.PI * 3) * 18 * (1 - t);
       trailPts.push({ x, y: baseY + wave });
     }
