@@ -82,29 +82,91 @@ registerSketch('sk3', function (p) {
   }
 
   function drawMountain() {
+    // Summit at ~y=90, base at y=H=500
+    // 3567 ft total. Snow line at 3016 ft = 84.6% up → y ≈ 158
+    // Tree line at 2000 ft = 56% up → y ≈ 273
+    const peakY     = 90;
+    const snowLineY = p.map(3016, 0, 3567, H, peakY); // ~158
+    const treeLineY = p.map(2000, 0, 3567, H, peakY); // ~273
+
+    // Define the near-mountain outline as a reusable path function
+    function mountainPath() {
+      p.vertex(0, H);
+      p.bezierVertex(W * 0.15, H - 90, W * 0.5, peakY, W * 0.75, 108);
+      p.bezierVertex(W * 0.88, 118, W * 0.94, 165, W, 185);
+      p.vertex(W, H);
+    }
+
+    // Use canvas clip to paint color zones inside the mountain shape
+    const ctx = p.drawingContext;
+
+    function clipMountain() {
+      ctx.beginPath();
+      ctx.moveTo(0, H);
+      ctx.bezierCurveTo(W * 0.15, H - 90, W * 0.5, peakY, W * 0.75, 108);
+      ctx.bezierCurveTo(W * 0.88, 118, W * 0.94, 165, W, 185);
+      ctx.lineTo(W, H);
+      ctx.closePath();
+      ctx.clip();
+    }
+
+    // --- far background ridge (flat grey-blue) ---
     p.noStroke();
-    // far layer
-    p.fill(120, 140, 160, 160);
+    p.fill(120, 140, 160, 150);
     p.beginShape();
     p.vertex(0, H);
     p.bezierVertex(W * 0.1, H - 120, W * 0.4, 60, W * 0.65, 90);
     p.bezierVertex(W * 0.8, 110, W * 0.9, 170, W, 190);
     p.vertex(W, H);
     p.endShape(p.CLOSE);
-    // near layer
-    p.fill(70, 95, 115, 210);
-    p.beginShape();
-    p.vertex(0, H);
-    p.bezierVertex(W * 0.15, H - 90, W * 0.5, 95, W * 0.75, 108);
-    p.bezierVertex(W * 0.88, 118, W * 0.94, 165, W, 185);
-    p.vertex(W, H);
-    p.endShape(p.CLOSE);
-    // snow cap
-    p.fill(240, 245, 255, 200);
-    p.beginShape();
-    p.vertex(W * 0.44, 115);
-    p.bezierVertex(W * 0.48, 75, W * 0.52, 75, W * 0.56, 115);
-    p.endShape(p.CLOSE);
+
+    // --- near mountain with three elevation zones ---
+    ctx.save();
+    clipMountain();
+
+    // Zone 1: Forest green base (ground to tree line)
+    p.noStroke();
+    p.fill(45, 100, 45);
+    p.rect(0, treeLineY, W, H - treeLineY);
+
+    // slightly lighter green mid-forest strip
+    p.fill(60, 120, 55, 160);
+    p.rect(0, treeLineY - 20, W, 30);
+
+    // Zone 2: Rocky grey (tree line to snow line)
+    p.fill(130, 120, 110);
+    p.rect(0, snowLineY, W, treeLineY - snowLineY);
+
+    // rocky texture — scattered darker patches
+    p.fill(100, 90, 80, 120);
+    for (let rx = 60; rx < W - 60; rx += 55) {
+      for (let ry = snowLineY + 10; ry < treeLineY - 10; ry += 30) {
+        p.ellipse(rx + p.sin(rx * 0.3) * 20, ry, 28, 12);
+      }
+    }
+
+    // Zone 3: Snow white (snow line to peak)
+    p.fill(235, 242, 255);
+    p.rect(0, peakY - 10, W, snowLineY - peakY + 10);
+
+    // snow texture — soft blue shadows
+    p.fill(200, 215, 240, 120);
+    p.ellipse(W * 0.38, snowLineY - 15, 60, 20);
+    p.ellipse(W * 0.58, snowLineY - 10, 80, 18);
+    p.fill(255, 255, 255, 180);
+    p.ellipse(W * 0.5, peakY + 18, 90, 28);
+
+    ctx.restore();
+
+    // snow line label on the right edge
+    p.noStroke();
+    p.fill(255, 255, 255, 180);
+    p.textSize(9);
+    p.textAlign(p.LEFT, p.CENTER);
+    p.text('snow line ~3016 ft', W * 0.78, snowLineY - 6);
+    p.stroke(255, 255, 255, 100);
+    p.strokeWeight(1);
+    p.line(W * 0.76, snowLineY, W * 0.77, snowLineY);
   }
 
   function drawTrail() {
