@@ -34,7 +34,6 @@ registerSketch('sk3', function (p) {
 
   // interaction state
   let manualT       = null;   // clicked waypoint override
-  let speedMult     = 1;      // 1 / 10 / 100
   let simSeconds    = 0;      // simulated clock seconds
   let lastMs        = 0;      // for delta-time sim
   let expandedWeather = null; // index into WEATHER
@@ -141,15 +140,6 @@ registerSketch('sk3', function (p) {
     }
 
 
-    // 4. speed buttons
-    const bx = W - 110, by = H - 44;
-    if (p.mouseX >= bx && p.mouseX <= bx + 90 && p.mouseY >= by && p.mouseY <= by + 30) {
-      const third = 30;
-      const rel = p.mouseX - bx;
-      if (rel < third)       { speedMult = 1;   manualT = null; }
-      else if (rel < third * 2) { speedMult = 10;  manualT = null; }
-      else                   { speedMult = 100; manualT = null; }
-    }
   };
 
   // ── main draw ────────────────────────────────────────────────────
@@ -158,16 +148,15 @@ registerSketch('sk3', function (p) {
     const now = p.millis();
     const delta = (now - lastMs) / 1000;
     lastMs = now;
-    if (speedMult > 1 || manualT === null) simSeconds += delta * speedMult;
+    if (manualT === null) simSeconds += delta;
 
     drawSky();
     drawMountain();
     drawTrail();
     drawWaypointMarkers();
     drawHiker();
-    drawTrailHoverElevation();  // 3
-    drawHikerTooltip();         // 2
-    drawSpeedControls();        // 4
+    drawTrailHoverElevation();
+    drawHikerTooltip();
     drawTimeDisplay();
   };
 
@@ -425,26 +414,6 @@ registerSketch('sk3', function (p) {
   }
 
 
-  // ── interaction 4: speed controls ────────────────────────────────
-  function drawSpeedControls() {
-    const bx = W - 112, by = H - 44;
-    const labels = ['1×', '10×', '100×'];
-    const speeds = [1, 10, 100];
-    p.noStroke(); p.fill(0,0,0,140); p.rect(bx-2, by-2, 96, 34, 6);
-    for (let i = 0; i < 3; i++) {
-      const x = bx + i * 32;
-      const active = speedMult === speeds[i];
-      p.noStroke();
-      p.fill(active ? p.color(200,150,30) : p.color(60,60,60,180));
-      p.rect(x, by, 30, 30, 5);
-      p.fill(active ? p.color(255,240,180) : p.color(180,170,150));
-      p.textSize(10); p.textAlign(p.CENTER, p.CENTER);
-      p.text(labels[i], x+15, by+15);
-    }
-    p.noStroke(); p.fill(180,160,120,160); p.textSize(9);
-    p.textAlign(p.CENTER, p.TOP);
-    p.text('speed', bx + 47, by + 32);
-  }
 
   // ── time display ─────────────────────────────────────────────────
   function drawTimeDisplay() {
