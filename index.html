@@ -385,113 +385,84 @@
 
           <article class="clock-template">
             <h4>The Forest We're Losing: Country by Country</h4>
-            <p class="small-note">HWK 5 — Narrative Visualization · FAO Global Forest Resources Assessment</p>
+            <p class="small-note">HWK 5 · Narrative Visualization · FAO Global Forest Resources Assessment</p>
 
-            <h5>Why I chose this dataset and story</h5>
+            <h5>Why this dataset and story</h5>
             <p>
-              I chose the FAO Global Forest Resources Assessment dataset because deforestation is one of the most
-              visible environmental crises, yet most people only see it as an abstract statistic. Headlines say
-              "millions of hectares lost" but that number doesn't land emotionally. I wanted to make the loss feel
-              concrete and comparable across countries that have very different relationships with their forests —
-              China actively replanting, Brazil clearing Amazon at industrial scale, Russia sitting on the world's
-              largest forest almost untouched. Putting them side by side as trees of different sizes makes the
-              inequality immediately readable.
+              Deforestation is everywhere in the news, but "millions of hectares lost" never really hits. I wanted
+              to make the numbers feel real and let people compare countries that have very different relationships
+              with their forests: China actively replanting, Brazil clearing the Amazon, Russia barely touching its
+              vast reserves. Putting them side by side as trees of different sizes makes that inequality legible
+              immediately.
             </p>
 
-            <h5>Why I chose this title</h5>
+            <h5>Why this title</h5>
             <p>
-              "The Forest We're Losing: Country by Country" frames the story as personal and ongoing rather than
-              historical. The phrase "we're losing" puts the audience in the present moment and assigns collective
-              responsibility — it's not something that happened, it's happening now. "Country by Country" signals
-              that this is a comparative story, not a single nation's problem, and invites the viewer to scroll
-              through and judge each country on its own terms.
+              "We're losing" puts the audience in the present and shares the responsibility. "Country by Country"
+              tells the viewer this is a comparison story and invites them to scroll and judge each country
+              on its own.
             </p>
 
-            <h5>The story being communicated</h5>
+            <h5>What the visualization shows</h5>
             <p>
-              Each country is represented by a living tree. The tree's height and canopy size are proportional to
-              its actual total forest area in million hectares, so Russia towers over Colombia the moment you see
-              them together. Below the ground, two underground indicators appear for every country: a red hatched
-              bar on the left shows the annual deforestation rate (how much is being cut), and a branching root
-              system on the right shows the annual planting rate (how much is being replanted). A small lumberjack
-              figure stands beside the red bar to make the cutting action human-scale and emotionally legible.
+              Each country is a living tree. Height and canopy size map to total forest area in million hectares,
+              so Russia towers over Colombia the moment you see them together. Below the ground, a red hatched bar
+              on the left shows annual deforestation rate, a branching root system on the right shows annual
+              planting rate, and a small lumberjack stands next to the cut bar to make the action feel human-scale.
             </p>
             <p>
-              The central tension the viewer is meant to feel: some countries have roots deeper than their cut bar
-              (net gainers — China, India, USA), while others have a tall cut bar dwarfing their shallow roots (net
-              losers — Brazil, Indonesia, D.R. Congo). When you drag the year scrubber toward 2005, Brazil's canopy
-              visibly turns brown-orange and its cut bar spikes — the Amazon deforestation crisis rendered as a
-              single tree wilting. Drag forward to 2020 and Brazil's canopy starts recovering color as enforcement
-              improved. China's tree, meanwhile, grows steadily taller across every year.
+              Countries where roots are deeper than the cut bar are net gainers (China, India, USA). Countries
+              where the cut bar towers over shallow roots are net losers (Brazil, Indonesia, D.R. Congo). Drag
+              the year scrubber to 2005 and Brazil's canopy turns brown-orange as its cut bar spikes. Drag to
+              2020 and the color recovers as enforcement improved. China's tree just keeps growing.
             </p>
             <p>
-              If I were presenting this in a talk I would open at year 1990 with all trees full green, then slowly
-              drag the scrubber forward while pointing at Brazil's changing color, then scroll right to show
-              Indonesia following the same pattern a decade later. The closing frame would be a side-by-side of
-              China and D.R. Congo — same era, opposite trajectories — to argue that forest loss is a policy
-              choice, not an inevitability.
+              To walk someone through this I'd start at 1990 with all trees green, slowly drag forward while
+              pointing at Brazil, then scroll right to Indonesia following the same pattern a decade later. The
+              closing comparison is China next to D.R. Congo: same era, opposite directions, same choice.
             </p>
 
-            <h5>Design iteration based on feedback</h5>
+            <h5>How the design evolved</h5>
             <p>
-              The visualization went through several rounds of revision based on direct feedback during development.
-              The initial version used overlapping circles for the canopy, which felt blobby and unconvincing —
-              this was replaced with a proper illustrated tree style using a visible branch skeleton with organic
-              curveVertex foliage, matching the reference style of flat illustration trees.
-            </p>
-            <p>
-              Feedback also clarified the underground layout: the original cut indicator sat above ground as a
-              notch on the trunk, which made it hard to compare cut versus plant side by side. Both were moved
-              underground — cut bar on the left, root system on the right — so the comparison is immediate and
-              spatial. The lumberjack figure was repositioned to always appear underground left of the cut bar
-              after it was noted that alternating sides made the layout feel inconsistent.
-            </p>
-            <p>
-              Label crowding was a recurring issue as more countries were added. Labels were consolidated to
-              stack vertically centered on the trunk rather than spreading horizontally toward adjacent trees.
-              The unit was also changed from M/yr to k/yr to make the numerical differences between countries
-              feel larger and more dramatic at a glance.
+              The first version used overlapping circles for the canopy, which looked blobby. I replaced it with
+              an illustrated tree using a branch skeleton and organic foliage curves. The cut indicator originally
+              sat above ground as a trunk notch, which made it hard to compare against planting. Moving both
+              underground fixed that. The lumberjack used to alternate sides, which felt messy, so I locked it to
+              the left every time. As more countries were added, labels started crowding neighboring trees, so I
+              stacked them vertically on the trunk and switched the unit from M/yr to k/yr to make differences
+              more visible.
             </p>
 
-            <h5>Main design principles guiding encoding choices</h5>
+            <h5>Design principles</h5>
             <p>
-              <strong>Metaphor-first encoding.</strong> The tree is the data. This is not a bar chart that happens
-              to look like a tree — the tree height, the roots, the canopy color, the lumberjack are all direct
-              mappings of real values. This means a viewer with zero data visualization literacy can begin reading
-              the chart instinctively because the visual vocabulary is already part of their world knowledge.
+              <strong>The tree is the data.</strong> Height, roots, canopy color, and the lumberjack are all
+              direct mappings of real values. Someone with no visualization background can start reading it
+              instinctively because the visual vocabulary is already familiar.
             </p>
             <p>
-              <strong>Spatial grammar mirrors physical reality.</strong> Forest above ground = living canopy.
-              Deforestation below ground = something being taken away invisibly. Roots below ground = the
-              invisible investment in replanting. The ground line is the boundary between what is visible (the
-              forest we see) and what is happening out of sight (the economics of cutting and planting). This
-              spatial logic is self-explanatory once you see it.
+              <strong>Spatial layout mirrors physical reality.</strong> Living forest above ground, cutting and
+              planting happening below. The ground line separates what we see from what is happening out of sight,
+              and that logic explains itself.
             </p>
             <p>
-              <strong>Color as a secondary redundant channel.</strong> Tree height already encodes area. Canopy
-              color redundantly encodes net gain/loss — green means healthy, brown-orange means stressed. This
-              redundancy means a viewer who misses the numbers still gets the qualitative story from color alone.
-              It also makes the time scrubber feel "alive" because the canopy color changes as you drag.
+              <strong>Color reinforces the numbers.</strong> Tree height encodes area; canopy color adds a second
+              read of net gain or loss. Viewers who miss the numbers still get the story from color, and the
+              scrubber feels alive because the canopy shifts as you drag.
             </p>
             <p>
-              <strong>Human scale for emotional legibility.</strong> The lumberjack figure converts an abstract
-              rate (annual deforestation in thousands of hectares) into a human action. It's a rhetorical choice:
-              deforestation isn't a natural process, it's people making decisions.
+              <strong>The lumberjack makes it human.</strong> An annual deforestation rate is abstract.
+              A person swinging an axe is not. Deforestation is a decision, not a natural process.
             </p>
 
-            <h5>Clarity, hierarchy, and memorability</h5>
+            <h5>Clarity and memorability</h5>
             <p>
-              Hierarchy is established by size: the first thing you see is which trees are tall (large forests) and
-              which are short. The second layer is color (who is losing). The third layer is the underground
-              section (the rates). This means a 3-second glance gives you the headline, and a 3-minute exploration
-              gives you the full story. The title reinforces the hierarchy — "The Forest We're Losing" tells you
-              the emotional direction before you even look at the data.
+              The hierarchy works in layers: size first (how big is this country's forest), then color (is it
+              healthy or stressed), then the underground section for the rates. A quick glance gives the headline;
+              a longer look gives the full story.
             </p>
             <p>
-              Memorability comes from the metaphor. Viewers remembered "Brazil's tree was turning brown" and
-              "China had really deep roots" in both interviews — concrete visual images that carry the data
-              forward. Abstract numbers alone would not survive a week. A tree that goes brown and then recovers
-              is a story people can retell.
+              The metaphor makes it stick. A tree that goes brown and then recovers is something people can
+              retell. Raw numbers are not.
             </p>
           </article>
 
