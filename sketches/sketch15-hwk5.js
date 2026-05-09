@@ -28,14 +28,42 @@ registerSketch('sk15', function(p) {
       plant: [0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.1],
       cut:   [0.3, 0.28, 0.25, 0.25, 0.25, 0.2, 0.4],
       dk: [112, 148, 68], md: [168, 198, 118], lt: [210, 232, 165] },
+    { name: 'Russia',
+      area:  [809, 808, 808, 809, 815, 815, 815],
+      plant: [0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3],
+      cut:   [0.3, 0.3, 0.3, 0.3, 0.28, 0.25, 0.25],
+      dk: [72, 128, 58], md: [128, 178, 98], lt: [185, 220, 148] },
+    { name: 'Canada',
+      area:  [347, 347, 347, 347, 347, 347, 347],
+      plant: [0.12, 0.12, 0.12, 0.12, 0.12, 0.12, 0.12],
+      cut:   [0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15],
+      dk: [82, 138, 65], md: [138, 185, 105], lt: [192, 225, 155] },
+    { name: 'Indonesia',
+      area:  [120, 115, 110, 105, 98, 93, 92],
+      plant: [0.05, 0.05, 0.1, 0.12, 0.15, 0.18, 0.2],
+      cut:   [1.5, 1.6, 2.0, 1.8, 1.2, 0.8, 0.6],
+      dk: [45, 112, 42], md: [88, 162, 80], lt: [148, 208, 128] },
+    { name: 'D.R. Congo',
+      area:  [154, 152, 150, 147, 144, 142, 140],
+      plant: [0.04, 0.04, 0.04, 0.04, 0.04, 0.05, 0.05],
+      cut:   [0.3, 0.38, 0.48, 0.55, 0.58, 0.55, 0.58],
+      dk: [55, 118, 48], md: [105, 165, 85], lt: [162, 210, 132] },
+    { name: 'Colombia',
+      area:  [62, 61, 60, 59, 58, 57, 55],
+      plant: [0.05, 0.05, 0.06, 0.07, 0.08, 0.1, 0.12],
+      cut:   [0.28, 0.28, 0.28, 0.28, 0.2, 0.18, 0.28],
+      dk: [68, 128, 52], md: [118, 175, 90], lt: [175, 218, 138] },
   ];
 
-  const W = 920, H = 640;
+  const W = 1200, H = 640;
   const GY  = 390;
-  const SY  = 582;
+  const SY  = 578;
+  const HSY = 548;             // horizontal scroll bar Y
   const SX1 = 105, SX2 = W - 55;
   const YEAR_MIN = 1990, YEAR_MAX = 2025;
-  const XS = [100, 255, 460, 665, 820];
+  // 10 trees spaced 220px apart in a 2380px world
+  const TREE_SPACING = 220;
+  const XS = [120, 340, 560, 780, 1000, 1220, 1440, 1660, 1880, 2100];
 
   // Organic crown shape — 14 control points, fixed bumps give natural silhouette
   const CROWN_N  = [
@@ -213,6 +241,11 @@ registerSketch('sk15', function(p) {
     p.pop();
   }
 
+  // Blend two RGB arrays by t (0=a, 1=b)
+  function lerpC(a, b, t) {
+    return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t];
+  }
+
   function iv(arr, yr) {
     if (yr <= YRS[0]) return arr[0];
     if (yr >= YRS[YRS.length - 1]) return arr[arr.length - 1];
@@ -257,8 +290,12 @@ registerSketch('sk15', function(p) {
     p.textStyle(p.NORMAL);
   }
 
-  let year = 2005;
-  let drag  = false;
+  let year    = 2005;
+  let drag    = false;   // year scrubber
+  let hDrag   = false;   // horizontal scroll bar
+  let panDrag = false;   // click-drag pan in tree area
+  let scrollX = 0;       // horizontal pan offset
+  const WORLD_W = XS[XS.length - 1] + 200;  // total scrollable world width
 
   p.setup = function() { p.createCanvas(W, H); };
 
@@ -286,28 +323,43 @@ registerSketch('sk15', function(p) {
     p.fill(125, 88, 45);
     p.rect(0, GY + 8, W, 8);
 
-    // Trees, roots, cut boxes, lumberjacks, labels
+    // Trees — clip to tree area so nothing bleeds into UI
+    p.drawingContext.save();
+    p.drawingContext.beginPath();
+    p.drawingContext.rect(0, 55, W, H - 55 - (H - HSY + 5));
+    p.drawingContext.clip();
+
     for (let i = 0; i < COUNTRIES.length; i++) {
       const c    = COUNTRIES[i];
-      const cx   = XS[i];
+      const cx   = XS[i] - scrollX;
+      if (cx < -150 || cx > W + 150) continue;  // skip off-screen
       const area  = iv(c.area,  year);
       const plant = iv(c.plant, year);
       const cut   = iv(c.cut,   year);
       const net   = plant - cut;
 
-      const treeH    = p.map(area,  0, 600, 58, 215);
-      const rootD    = p.map(plant, 0, 4.0, 12, 72);
-      const rootSpd  = p.map(plant, 0, 4.0, 14, 44);
-      const cutUnderH = p.map(cut,  0, 5.0,  8, 68); // cut bar underground height
-      const cutBoxH  = p.map(cut,   0, 5.0,  3, 38); // small notch at trunk base
+      // Tighter scales → changes are more visible when scrubbing
+      const treeH    = p.map(p.constrain(area, 50, 820), 50, 820, 20, 218);
+      const rootD    = p.map(p.constrain(plant, 0, 3.0), 0, 3.0, 10, 80);
+      const rootSpd  = p.map(p.constrain(plant, 0, 3.0), 0, 3.0, 12, 50);
+      const cutUnderH = p.map(p.constrain(cut,  0, 4.5), 0, 4.5,  8, 78);
       const trunkBW  = Math.max(7, treeH * 0.062);
 
-      // ── Underground: cut bar (LEFT) + roots (RIGHT) side by side ──
-      const cutBarCX = cx - 26;   // center of cut bar
-      const rootsCX  = cx + 12;   // center of root system
+      // Canopy color: shift toward brown-orange when net is negative (losing forest)
+      const stress = p.constrain(-net / 3.5, 0, 1);
+      const BROWN = { dk:[115,72,18], md:[168,108,32], lt:[210,155,65] };
+      const tc = {
+        dk: lerpC(c.dk, BROWN.dk, stress),
+        md: lerpC(c.md, BROWN.md, stress),
+        lt: lerpC(c.lt, BROWN.lt, stress),
+      };
 
-      // Cut bar underground (hatched red, going DOWN)
+      // ── Underground: cut bar (LEFT) + roots (RIGHT), spread wide ──
+      const cutBarCX = cx - 42;
+      const rootsCX  = cx + 26;
       const cbw = 14, cbx = cutBarCX - cbw / 2;
+
+      // Cut bar (hatched red, going DOWN)
       p.fill(200, 55, 22, 220);
       p.noStroke();
       p.rect(cbx, GY + 5, cbw, cutUnderH, 1);
@@ -323,24 +375,25 @@ registerSketch('sk15', function(p) {
       p.noStroke();
       p.drawingContext.restore();
 
-      // Roots (bezier, right side)
+      // Roots (bezier)
       drawRoots(rootsCX, GY + 5, rootD, rootSpd);
 
-      // Underground labels — bright so they read against dark soil
+      // Labels stacked vertically under the tree center — never overlap
+      const labelBaseY = GY + Math.max(cutUnderH, rootD) + 14;
       p.noStroke();
-      p.fill(248, 160, 110);           // warm orange for cut
       p.textAlign(p.CENTER, p.TOP);
-      p.textSize(9.5);
+      p.textSize(9);
       p.textStyle(p.BOLD);
-      p.text('cut ' + Math.round(cut * 1000) + 'k/yr', cutBarCX, GY + 5 + cutUnderH + 5);
-      p.fill(230, 195, 120);           // bright gold for plant
-      p.text('plant ' + Math.round(plant * 1000) + 'k/yr', rootsCX, GY + 5 + rootD + 5);
+      p.fill(248, 160, 110);
+      p.text('✂ cut ' + Math.round(cut * 1000) + 'k/yr', cx, labelBaseY);
+      p.fill(230, 195, 120);
+      p.text('⬆ plant ' + Math.round(plant * 1000) + 'k/yr', cx, labelBaseY + 14);
       p.textStyle(p.NORMAL);
 
-      // ── Tree (no above-ground cut box) ──
-      drawTree(cx, GY, treeH, c);
+      // ── Tree (tinted by net gain/loss) ──
+      drawTree(cx, GY, treeH, tc);
 
-      // Lumberjack: exact position — left of cut bar, always underground
+      // Lumberjack left of cut bar underground
       const ljX = cutBarCX - cbw / 2 - 16;
       const ljY = GY + Math.max(24, cutUnderH * 0.6);
       drawLumberjack(ljX, ljY, -1);
@@ -363,6 +416,23 @@ registerSketch('sk15', function(p) {
       p.fill(net >= 0 ? p.color(18, 130, 30) : p.color(185, 28, 18));
       p.text((net >= 0 ? '▲ +' : '▼ ') + Math.round(Math.abs(net) * 1000) + 'k/yr', cx, crownTopY - 30);
     }
+
+    p.drawingContext.restore();  // end tree clip
+
+    // ── Horizontal scroll bar ──
+    const hTrackW = W - 110;
+    const hHandleW = Math.max(50, (W / WORLD_W) * hTrackW);
+    const maxScroll = WORLD_W - W;
+    const hHandleX = 55 + (scrollX / maxScroll) * (hTrackW - hHandleW);
+    p.fill(155, 120, 72, 120);
+    p.noStroke();
+    p.rect(55, HSY - 6, hTrackW, 10, 5);
+    p.fill(hDrag ? p.color(200, 160, 80) : p.color(178, 138, 68));
+    p.rect(hHandleX, HSY - 7, hHandleW, 12, 5);
+    // hint arrows
+    p.fill(200, 175, 130);
+    p.textAlign(p.LEFT); p.textSize(9);
+    p.text('← drag to explore more countries →', 55, HSY - 17);
 
     // Legend
     const lx = W - 190, ly = 58;
@@ -396,13 +466,28 @@ registerSketch('sk15', function(p) {
   p.mousePressed = function() {
     const hx = scrubX();
     if (p.dist(p.mouseX, p.mouseY, hx, SY) < 14 ||
-        (p.abs(p.mouseY - SY) < 14 && p.mouseX >= SX1 && p.mouseX <= SX2))
+        (p.abs(p.mouseY - SY) < 14 && p.mouseX >= SX1 && p.mouseX <= SX2)) {
       drag = true;
+    } else if (p.abs(p.mouseY - HSY) < 12 && p.mouseX >= 55 && p.mouseX <= W - 55) {
+      hDrag = true;
+    } else if (p.mouseY > 55 && p.mouseY < HSY - 25) {
+      panDrag = true;
+    }
   };
-  p.mouseReleased = function() { drag = false; };
+  p.mouseReleased = function() { drag = false; hDrag = false; panDrag = false; };
   p.mouseDragged = function() {
-    if (drag)
+    if (drag) {
       year = p.constrain(p.map(p.mouseX, SX1, SX2, YEAR_MIN, YEAR_MAX), YEAR_MIN, YEAR_MAX);
+    } else if (hDrag) {
+      const hTrackW = W - 110;
+      const hHandleW = Math.max(50, (W / WORLD_W) * hTrackW);
+      scrollX = p.constrain(
+        p.map(p.mouseX, 55 + hHandleW / 2, 55 + hTrackW - hHandleW / 2, 0, WORLD_W - W),
+        0, WORLD_W - W
+      );
+    } else if (panDrag) {
+      scrollX = p.constrain(scrollX - p.movedX, 0, WORLD_W - W);
+    }
   };
 
   p.windowResized = function() { p.resizeCanvas(W, H); };
