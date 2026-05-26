@@ -128,7 +128,7 @@ registerSketch('sk2', function (p) {
     drawAmbientGlow(topY, done);
     drawCandle(topY, currentHeight, fullHeight, layersBurned);
     drawFlame(topY, done);
-    drawLabels(fullHeight, layersBurned);
+    drawLabels(fullHeight, layersBurned, topY);
     drawUI(minutesElapsed, totalMinutes, done, topY);
   };
 
@@ -289,17 +289,17 @@ registerSketch('sk2', function (p) {
     }
   }
 
-  function drawLabels(fullHeight, layersBurned) {
+  function drawLabels(fullHeight, layersBurned, topY) {
     p.textAlign(p.CENTER, p.CENTER);
     p.textSize(12);
     p.noStroke();
 
     for (let i = 1; i <= totalLayers; i++) {
       const labelY = BASE_Y - (i - 0.5) * LAYER_H;
-      const burned = layersBurned >= i;
-      const active = p.floor(layersBurned) === i - 1;
+      if (labelY < topY) continue; // burned away — flame has passed this mark
+      const active = p.floor(layersBurned) === totalLayers - i;
 
-      p.fill(burned ? p.color(180, 130, 60, 180) : active ? p.color(180, 120, 20) : p.color(160, 130, 90));
+      p.fill(active ? p.color(180, 120, 20) : p.color(160, 130, 90));
       p.text(i * LAYER_MINUTES + ' min', CX, labelY);
     }
   }
