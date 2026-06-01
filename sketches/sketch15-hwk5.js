@@ -451,20 +451,20 @@ registerSketch('sk15', function(p) {
     p.text('← drag to explore more countries →', 55, HSY - 17);
 
     // Legend
-    const lx = W - 190, ly = 58;
+    const lx = W - 210, ly = 58;
     p.fill(238, 245, 232, 225);
     p.stroke(182);
     p.strokeWeight(1);
-    p.rect(lx - 6, ly - 4, 183, 72, 5);
+    p.rect(lx - 6, ly - 4, 204, 72, 5);
     p.noStroke();
     p.textAlign(p.LEFT);
     p.textSize(10);
     p.fill(148, 192, 108);
-    p.text('● Tree height = total forest area', lx, ly + 12);
+    p.text('● Height = total forest area', lx, ly + 12);
     p.fill(85, 52, 16);
-    p.text('↓ Roots depth = annual planting (k ha/yr)', lx, ly + 26);
+    p.text('↓ Roots = annual planting (k ha/yr)', lx, ly + 26);
     p.fill(200, 55, 22);
-    p.text('▪ Base box    = annual deforestation (k ha/yr)', lx, ly + 40);
+    p.text('▪ Box = annual deforestation (k ha/yr)', lx, ly + 40);
     p.fill(18, 130, 30);
     p.text('▲ Net gain', lx, ly + 56);
     p.fill(185, 28, 18);
