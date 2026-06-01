@@ -202,54 +202,6 @@ registerSketch('sk15', function(p) {
     p.noStroke();
   }
 
-  // mx/feetY are the exact position; side: -1=face right(axe right), 1=face left(axe left)
-  // swing: oscillating chop angle in radians (±0.65), animated via millis()
-  function drawLumberjack(mx, feetY, side, swing) {
-    swing = swing || 0;
-    const s  = 14;
-    const my = feetY;
-
-    // Head
-    p.noStroke();
-    p.fill(218, 172, 128);
-    p.circle(mx, my - s * 1.62, s * 0.46);
-    // Hard hat
-    p.fill(255, 210, 0);
-    p.rect(mx - s * 0.32, my - s * 1.82, s * 0.64, s * 0.22, 1);
-    p.rect(mx - s * 0.38, my - s * 1.76, s * 0.76, s * 0.10);
-    // Body
-    p.fill(180, 35, 35);
-    p.rect(mx - s * 0.22, my - s * 1.35, s * 0.44, s * 0.65, 1);
-    // Legs
-    p.fill(55, 72, 145);
-    p.rect(mx - s * 0.22, my - s * 0.70, s * 0.18, s * 0.72, 1);
-    p.rect(mx + s * 0.04, my - s * 0.70, s * 0.18, s * 0.72, 1);
-    // Axe arm — animated chop swing rotating around shoulder
-    const axDir = side;
-    const shoulderX = mx + axDir * s * 0.10;
-    const shoulderY = my - s * 1.15;
-    p.push();
-    p.translate(shoulderX, shoulderY);
-    p.rotate(swing * axDir);
-    p.stroke(218, 172, 128);
-    p.strokeWeight(2);
-    const armDX = axDir * s * 0.60;
-    const armDY = s * 0.20;
-    p.line(0, 0, armDX, armDY);
-    p.noStroke();
-    // Axe handle
-    p.fill(128, 92, 42);
-    const handleLen = s * 0.45;
-    p.push();
-    p.translate(armDX, armDY);
-    p.rotate(axDir * -0.9);
-    p.rect(-2, -handleLen, 4, handleLen, 1);
-    // Axe head
-    p.fill(175, 178, 185);
-    p.triangle(-s * 0.18, -handleLen, s * 0.05, -handleLen - s * 0.22, s * 0.05, -handleLen + s * 0.08);
-    p.pop();
-    p.pop();
-  }
 
   // Blend two RGB arrays by t (0=a, 1=b)
   function lerpC(a, b, t) {
@@ -403,11 +355,6 @@ registerSketch('sk15', function(p) {
       // ── Tree (tinted by net gain/loss) ──
       drawTree(cx, GY, treeH, tc);
 
-      // Lumberjack standing at ground level, left of tree, with animated chop
-      const ljX = cx - crownRX - 18;
-      const ljY = GY;
-      const swing = Math.sin(p.millis() / 250) * 0.65;
-      drawLumberjack(ljX, ljY, -1, swing);
 
       // Labels above canopy
       const crownRY   = treeH * 0.38;
