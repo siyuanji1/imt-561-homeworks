@@ -54,6 +54,8 @@ registerSketch('sk15', function(p) {
       cut:   [0.28, 0.28, 0.28, 0.28, 0.2, 0.18, 0.28],
       dk: [68, 128, 52], md: [118, 175, 90], lt: [175, 218, 138] },
   ];
+  // Fix 5: sort by 2020 forest area descending (largest to smallest)
+  COUNTRIES.sort((a, b) => b.area[b.area.length - 1] - a.area[a.area.length - 1]);
 
   const W = 1200, H = 640;
   const GY  = 390;
@@ -201,7 +203,9 @@ registerSketch('sk15', function(p) {
   }
 
   // mx/feetY are the exact position; side: -1=face right(axe right), 1=face left(axe left)
-  function drawLumberjack(mx, feetY, side) {
+  // swing: oscillating chop angle in radians (±0.65), animated via millis()
+  function drawLumberjack(mx, feetY, side, swing) {
+    swing = swing || 0;
     const s  = 14;
     const my = feetY;
 
@@ -220,24 +224,30 @@ registerSketch('sk15', function(p) {
     p.fill(55, 72, 145);
     p.rect(mx - s * 0.22, my - s * 0.70, s * 0.18, s * 0.72, 1);
     p.rect(mx + s * 0.04, my - s * 0.70, s * 0.18, s * 0.72, 1);
-    // Axe arm (pointing toward trunk)
-    const axDir = side;  // -1 = axe swings right, 1 = axe swings left
+    // Axe arm — animated chop swing rotating around shoulder
+    const axDir = side;
+    const shoulderX = mx + axDir * s * 0.10;
+    const shoulderY = my - s * 1.15;
+    p.push();
+    p.translate(shoulderX, shoulderY);
+    p.rotate(swing * axDir);
     p.stroke(218, 172, 128);
     p.strokeWeight(2);
-    const armEndX = mx + axDir * s * 0.70;
-    const armEndY = my - s * 0.95;
-    p.line(mx + axDir * s * 0.10, my - s * 1.15, armEndX, armEndY);
+    const armDX = axDir * s * 0.60;
+    const armDY = s * 0.20;
+    p.line(0, 0, armDX, armDY);
     p.noStroke();
     // Axe handle
     p.fill(128, 92, 42);
     const handleLen = s * 0.45;
     p.push();
-    p.translate(armEndX, armEndY);
+    p.translate(armDX, armDY);
     p.rotate(axDir * -0.9);
     p.rect(-2, -handleLen, 4, handleLen, 1);
     // Axe head
     p.fill(175, 178, 185);
     p.triangle(-s * 0.18, -handleLen, s * 0.05, -handleLen - s * 0.22, s * 0.05, -handleLen + s * 0.08);
+    p.pop();
     p.pop();
   }
 
@@ -268,7 +278,7 @@ registerSketch('sk15', function(p) {
     p.stroke(72, 138, 80);
     p.line(SX1, SY, scrubX(), SY);
     p.textAlign(p.CENTER, p.TOP);
-    p.textSize(10);
+    p.textSize(12);
     for (let y = YEAR_MIN; y <= YEAR_MAX; y += 5) {
       const tx = p.map(y, YEAR_MIN, YEAR_MAX, SX1, SX2);
       p.stroke(y <= year ? 72 : 165);
@@ -281,11 +291,11 @@ registerSketch('sk15', function(p) {
     const hx = scrubX();
     p.noStroke();
     p.fill(48, 128, 58);
-    p.circle(hx, SY, 22);
+    p.circle(hx, SY, 26);
     p.fill(255);
     p.textAlign(p.CENTER, p.CENTER);
     p.textStyle(p.BOLD);
-    p.textSize(7.5);
+    p.textSize(10);
     p.text(Math.round(year), hx, SY);
     p.textStyle(p.NORMAL);
   }
@@ -306,13 +316,13 @@ registerSketch('sk15', function(p) {
     p.noStroke();
     p.fill(22);
     p.textAlign(p.CENTER);
-    p.textSize(18);
+    p.textSize(22);
     p.textStyle(p.BOLD);
-    p.text("The Forest We're Losing: Country by Country", W / 2, 24);
+    p.text("The Forest We're Losing: Country by Country", W / 2, 26);
     p.textStyle(p.NORMAL);
     p.fill(78);
-    p.textSize(10);
-    p.text("FAO Global Forest Resources Assessment  ·  Drag the timeline to explore 1990–2025", W / 2, 43);
+    p.textSize(13);
+    p.text("FAO Global Forest Resources Assessment  ·  Drag the timeline to explore 1990–2025", W / 2, 50);
 
     // Ground layers
     p.noStroke();
@@ -354,12 +364,12 @@ registerSketch('sk15', function(p) {
         lt: lerpC(c.lt, BROWN.lt, stress),
       };
 
-      // ── Underground: cut bar (LEFT) + roots (RIGHT), spread wide ──
-      const cutBarCX = cx - 42;
-      const rootsCX  = cx + 26;
-      const cbw = 14, cbx = cutBarCX - cbw / 2;
+      // ── Underground: cut bar (centered under canopy) + roots ──
+      const crownRX  = treeH * 0.48;
+      const cbw = crownRX * 2;
+      const cbx = cx - crownRX;
 
-      // Cut bar (hatched red, going DOWN)
+      // Cut bar (hatched red, going DOWN, canopy-width for visual alignment)
       p.fill(200, 55, 22, 220);
       p.noStroke();
       p.rect(cbx, GY + 5, cbw, cutUnderH, 1);
@@ -375,46 +385,52 @@ registerSketch('sk15', function(p) {
       p.noStroke();
       p.drawingContext.restore();
 
-      // Roots (bezier)
-      drawRoots(rootsCX, GY + 5, rootD, rootSpd);
+      // Roots (bezier, centered under trunk)
+      drawRoots(cx, GY + 5, rootD, rootSpd);
 
       // Labels stacked vertically under the tree center — never overlap
       const labelBaseY = GY + Math.max(cutUnderH, rootD) + 14;
       p.noStroke();
       p.textAlign(p.CENTER, p.TOP);
-      p.textSize(9);
+      p.textSize(11);
       p.textStyle(p.BOLD);
       p.fill(248, 160, 110);
       p.text('✂ cut ' + Math.round(cut * 1000) + 'k/yr', cx, labelBaseY);
       p.fill(230, 195, 120);
-      p.text('⬆ plant ' + Math.round(plant * 1000) + 'k/yr', cx, labelBaseY + 14);
+      p.text('⬆ plant ' + Math.round(plant * 1000) + 'k/yr', cx, labelBaseY + 16);
       p.textStyle(p.NORMAL);
 
       // ── Tree (tinted by net gain/loss) ──
       drawTree(cx, GY, treeH, tc);
 
-      // Lumberjack left of cut bar underground
-      const ljX = cutBarCX - cbw / 2 - 16;
-      const ljY = GY + Math.max(24, cutUnderH * 0.6);
-      drawLumberjack(ljX, ljY, -1);
+      // Lumberjack standing at ground level, left of tree, with animated chop
+      const ljX = cx - crownRX - 18;
+      const ljY = GY;
+      const swing = Math.sin(p.millis() / 250) * 0.65;
+      drawLumberjack(ljX, ljY, -1, swing);
 
       // Labels above canopy
       const crownRY   = treeH * 0.38;
       const crownTopY = GY - treeH * 0.35 - crownRY * 0.72 - crownRY - 5;
 
+      // Semi-transparent label background for readability
+      p.fill(255, 255, 255, 180);
+      p.noStroke();
+      p.rect(cx - 54, crownTopY - 56, 108, 56, 3);
+
       p.noStroke();
       p.fill(20);
       p.textAlign(p.CENTER, p.BOTTOM);
-      p.textSize(12);
+      p.textSize(13);
       p.textStyle(p.BOLD);
       p.text(c.name, cx, crownTopY - 4);
       p.textStyle(p.NORMAL);
-      p.textSize(10);
+      p.textSize(11);
       p.fill(48);
-      p.text(Math.round(area) + ' Mha', cx, crownTopY - 18);
-      p.textSize(9);
+      p.text(Math.round(area) + ' Mha', cx, crownTopY - 20);
+      p.textSize(10);
       p.fill(net >= 0 ? p.color(18, 130, 30) : p.color(185, 28, 18));
-      p.text((net >= 0 ? '▲ +' : '▼ ') + Math.round(Math.abs(net) * 1000) + 'k/yr', cx, crownTopY - 30);
+      p.text((net >= 0 ? '▲ +' : '▼ ') + Math.round(Math.abs(net) * 1000) + 'k/yr', cx, crownTopY - 34);
     }
 
     p.drawingContext.restore();  // end tree clip
@@ -442,7 +458,7 @@ registerSketch('sk15', function(p) {
     p.rect(lx - 6, ly - 4, 183, 72, 5);
     p.noStroke();
     p.textAlign(p.LEFT);
-    p.textSize(9);
+    p.textSize(10);
     p.fill(148, 192, 108);
     p.text('● Tree height = total forest area', lx, ly + 12);
     p.fill(85, 52, 16);
@@ -458,7 +474,7 @@ registerSketch('sk15', function(p) {
     p.noStroke();
     p.fill(55);
     p.textAlign(p.LEFT);
-    p.textSize(10);
+    p.textSize(12);
     p.text('Year', SX1 - 46, SY + 4);
     drawScrubber();
   };
